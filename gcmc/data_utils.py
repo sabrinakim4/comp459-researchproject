@@ -53,7 +53,7 @@ def map_data(data):
     uniq = list(set(data))
 
     id_dict = {old: new for new, old in enumerate(sorted(uniq))}
-    data = np.array(map(lambda x: id_dict[x], data))
+    data = np.array(map(lambda x: id_dict[x], data)) # mapping data into continuous 0->n range?
     n = len(uniq)
 
     return data, id_dict, n
@@ -147,23 +147,26 @@ def load_data(fname, seed=1234, verbose=True):
 
         data = pd.read_csv(
             filename, sep=sep, header=None,
-            names=['u_nodes', 'v_nodes', 'ratings', 'timestamp'], dtype=dtypes)
+            names=['u_nodes', 'v_nodes', 'ratings', 'timestamp'], dtype=dtypes) # reads csv into a dataframe
+        # names = sequence of column labels to apply
 
         # shuffle here like cf-nade paper with python's own random class
         # make sure to convert to list, otherwise random.shuffle acts weird on it without a warning
-        data_array = data.as_matrix().tolist()
+        data_array = data.as_matrix().tolist() # as_matrix converts dataframe into numpy array equivalent
+        # tolist converts numpy array into python list
         random.seed(seed)
-        random.shuffle(data_array)
+        random.shuffle(data_array) # shuffling the rows around?
         data_array = np.array(data_array)
 
-        u_nodes_ratings = data_array[:, 0].astype(dtypes['u_nodes'])
-        v_nodes_ratings = data_array[:, 1].astype(dtypes['v_nodes'])
-        ratings = data_array[:, 2].astype(dtypes['ratings'])
+        u_nodes_ratings = data_array[:, 0].astype(dtypes['u_nodes']) # getting all the unodes
+        v_nodes_ratings = data_array[:, 1].astype(dtypes['v_nodes']) # getting all the vnodes
+        ratings = data_array[:, 2].astype(dtypes['ratings']) # getting all the ratings
 
-        u_nodes_ratings, u_dict, num_users = map_data(u_nodes_ratings)
+        u_nodes_ratings, u_dict, num_users = map_data(u_nodes_ratings) # u_nodes_ratings has the u node indices, and
+        # u_dict maps the node id to node index
         v_nodes_ratings, v_dict, num_items = map_data(v_nodes_ratings)
 
-        u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int64), v_nodes_ratings.astype(np.int32)
+        u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int64), v_nodes_ratings.astype(np.int32) # casting to specific type
         ratings = ratings.astype(np.float64)
 
         # Movie features (genres)
@@ -184,7 +187,7 @@ def load_data(fname, seed=1234, verbose=True):
         for movie_id, g_vec in zip(movie_df['movie id'].values.tolist(), movie_df[genre_headers].values.tolist()):
             # Check if movie_id was listed in ratings file and therefore in mapping dictionary
             if movie_id in v_dict.keys():
-                v_features[v_dict[movie_id], :] = g_vec
+                v_features[v_dict[movie_id], :] = g_vec # placing genre vector into feature array
 
         # User features
 
@@ -339,6 +342,93 @@ def load_data(fname, seed=1234, verbose=True):
 
         u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int64), v_nodes_ratings.astype(np.int64)
         ratings = ratings.astype(np.float32)
+
+    elif fname == 'yelp':
+        # # Check if files exist and download otherwise
+        # files = ['/u.data', '/u.item', '/u.user']
+        #
+        # download_dataset(fname, files, data_dir)
+
+        sep = '\t'
+        filename = data_dir + 'yelp_M_data.csv'
+
+        dtypes = {
+            'u_nodes': np.int32, 'v_nodes': np.int32,
+            'ratings': np.int32}
+
+        data = pd.read_csv(
+            filename, sep=sep, header=None,
+            names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
+        # names = sequence of column labels to apply
+
+        # shuffle here like cf-nade paper with python's own random class
+        # make sure to convert to list, otherwise random.shuffle acts weird on it without a warning
+        data_array = data.as_matrix().tolist()  # as_matrix converts dataframe into numpy array equivalent
+        # tolist converts numpy array into python list
+        random.seed(seed)
+        random.shuffle(data_array)  # shuffling the rows around?
+        data_array = np.array(data_array)
+
+        u_nodes_ratings = data_array[:, 0].astype(dtypes['u_nodes'])  # getting all the unodes
+        v_nodes_ratings = data_array[:, 1].astype(dtypes['v_nodes'])  # getting all the vnodes
+        ratings = data_array[:, 2].astype(dtypes['ratings'])  # getting all the ratings
+
+        u_nodes_ratings, u_dict, num_users = map_data(u_nodes_ratings)  # u_nodes_ratings has the u node indices, and
+        # u_dict maps the node indices to their actual values
+        v_nodes_ratings, v_dict, num_items = map_data(v_nodes_ratings)
+
+        u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int64), v_nodes_ratings.astype(
+            np.int32)  # casting to specific type
+        ratings = ratings.astype(np.float64)
+
+        # # Movie features (genres)
+        # sep = r'|'
+        # movie_file = data_dir + files[1]
+        # movie_headers = ['movie id', 'movie title', 'release date', 'video release date',
+        #                  'IMDb URL', 'unknown', 'Action', 'Adventure', 'Animation',
+        #                  'Childrens', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
+        #                  'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi',
+        #                  'Thriller', 'War', 'Western']
+        # movie_df = pd.read_csv(movie_file, sep=sep, header=None,
+        #                        names=movie_headers, engine='python')
+        #
+        # genre_headers = movie_df.columns.values[6:]
+        # num_genres = genre_headers.shape[0]
+        #
+        # v_features = np.zeros((num_items, num_genres), dtype=np.float32)
+        # for movie_id, g_vec in zip(movie_df['movie id'].values.tolist(), movie_df[genre_headers].values.tolist()):
+        #     # Check if movie_id was listed in ratings file and therefore in mapping dictionary
+        #     if movie_id in v_dict.keys():
+        #         v_features[v_dict[movie_id], :] = g_vec
+        #
+        # # User features
+        #
+        # sep = r'|'
+        # users_file = data_dir + files[2]
+        # users_headers = ['user id', 'age', 'gender', 'occupation', 'zip code']
+        # users_df = pd.read_csv(users_file, sep=sep, header=None,
+        #                        names=users_headers, engine='python')
+        #
+        # occupation = set(users_df['occupation'].values.tolist())
+        #
+        # gender_dict = {'M': 0., 'F': 1.}
+        # occupation_dict = {f: i for i, f in enumerate(occupation, start=2)}
+        #
+        # num_feats = 2 + len(occupation_dict)
+        #
+        # u_features = np.zeros((num_users, num_feats), dtype=np.float32)
+        # for _, row in users_df.iterrows():
+        #     u_id = row['user id']
+        #     if u_id in u_dict.keys():
+        #         # age
+        #         u_features[u_dict[u_id], 0] = row['age']
+        #         # gender
+        #         u_features[u_dict[u_id], 1] = gender_dict[row['gender']]
+        #         # occupation
+        #         u_features[u_dict[u_id], occupation_dict[row['occupation']]] = 1.
+        #
+        # u_features = sp.csr_matrix(u_features)
+        # v_features = sp.csr_matrix(v_features)
 
     else:
         raise ValueError('Dataset name not recognized: ' + fname)
