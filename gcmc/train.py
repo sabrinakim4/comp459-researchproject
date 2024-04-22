@@ -28,7 +28,7 @@ tf.set_random_seed(seed)
 # Settings
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", type=str, default="ml_1m",
-                choices=['ml_100k', 'ml_1m', 'ml_10m', 'douban', 'yahoo_music', 'flixster'],
+                choices=['ml_100k', 'ml_1m', 'ml_10m', 'douban', 'yahoo_music', 'flixster', 'yelp'],
                 help="Dataset string.")
 
 ap.add_argument("-lr", "--learning_rate", type=float, default=0.01,
@@ -168,7 +168,7 @@ num_side_features = 0
 
 # feature loading
 if not FEATURES:
-    u_features = sp.identity(num_users, format='csr')
+    u_features = sp.identity(num_users, format='csr') # creates identity matrix of size num_users x num_users
     v_features = sp.identity(num_items, format='csr')
 
     u_features, v_features = preprocess_user_item_features(u_features, v_features)

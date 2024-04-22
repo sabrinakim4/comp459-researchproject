@@ -131,6 +131,8 @@ def load_data(fname, seed=1234, verbose=True):
 
     data_dir = 'data/' + fname
 
+    print("fname:", fname)
+
     if fname == 'ml_100k':
 
         # Check if files exist and download otherwise
@@ -348,6 +350,8 @@ def load_data(fname, seed=1234, verbose=True):
         # files = ['/u.data', '/u.item', '/u.user']
         #
         # download_dataset(fname, files, data_dir)
+
+        print("in yelp data loading")
 
         sep = '\t'
         filename = data_dir + 'yelp_M_data.csv'

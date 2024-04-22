@@ -7,6 +7,7 @@ import cPickle as pkl
 import os
 import h5py
 import pandas as pd
+import sys
 
 
 from gcmc.data_utils import load_data, map_data, download_dataset
@@ -62,8 +63,8 @@ def preprocess_user_item_features(u_features, v_features):
     Stacks item features under the user features.
     """
 
-    zero_csr_u = sp.csr_matrix((u_features.shape[0], v_features.shape[1]), dtype=u_features.dtype)
-    zero_csr_v = sp.csr_matrix((v_features.shape[0], u_features.shape[1]), dtype=v_features.dtype)
+    zero_csr_u = sp.csr_matrix((u_features.shape[0], v_features.shape[1]), dtype=u_features.dtype) # num cols = num cols in v_features
+    zero_csr_v = sp.csr_matrix((v_features.shape[0], u_features.shape[1]), dtype=v_features.dtype) # num cols = num cols in u_featres
 
     u_features = sp.hstack([u_features, zero_csr_u], format='csr')
     v_features = sp.hstack([zero_csr_v, v_features], format='csr')
@@ -136,6 +137,7 @@ def create_trainvaltest_split(dataset, seed=1234, testing=False, datasplit_path=
             print('Fraction of positive links = %.4f' % (float(ratings.shape[0]) / (num_users * num_items),))
 
     else:
+        print("in here")
         num_users, num_items, u_nodes, v_nodes, ratings, u_features, v_features = load_data(dataset, seed=seed,
                                                                                             verbose=verbose)
 
@@ -144,11 +146,11 @@ def create_trainvaltest_split(dataset, seed=1234, testing=False, datasplit_path=
 
     neutral_rating = -1
 
-    rating_dict = {r: i for i, r in enumerate(np.sort(np.unique(ratings)).tolist())}
+    rating_dict = {r: i for i, r in enumerate(np.sort(np.unique(ratings)).tolist())} # mapping rating to index
 
     labels = np.full((num_users, num_items), neutral_rating, dtype=np.int32)
     labels[u_nodes, v_nodes] = np.array([rating_dict[r] for r in ratings])
-    labels = labels.reshape([-1])
+    labels = labels.reshape([-1]) # flattening label (rating) matrix into 1d array
 
     # number of test and validation edges
     num_test = int(np.ceil(ratings.shape[0] * 0.1))
@@ -161,7 +163,7 @@ def create_trainvaltest_split(dataset, seed=1234, testing=False, datasplit_path=
 
     pairs_nonzero = np.array([[u, v] for u, v in zip(u_nodes, v_nodes)])
 
-    idx_nonzero = np.array([u * num_items + v for u, v in pairs_nonzero])
+    idx_nonzero = np.array([u * num_items + v for u, v in pairs_nonzero]) # pairs of (u and v) that have a rating
 
     train_idx = idx_nonzero[0:num_train]
     val_idx = idx_nonzero[num_train:num_train + num_val]
@@ -171,7 +173,7 @@ def create_trainvaltest_split(dataset, seed=1234, testing=False, datasplit_path=
     val_pairs_idx = pairs_nonzero[num_train:num_train + num_val]
     test_pairs_idx = pairs_nonzero[num_train + num_val:]
 
-    u_test_idx, v_test_idx = test_pairs_idx.transpose()
+    u_test_idx, v_test_idx = test_pairs_idx.transpose() # getting node indices for users and items for testing set
     u_val_idx, v_val_idx = val_pairs_idx.transpose()
     u_train_idx, v_train_idx = train_pairs_idx.transpose()
 
@@ -189,7 +191,7 @@ def create_trainvaltest_split(dataset, seed=1234, testing=False, datasplit_path=
 
     # make training adjacency matrix
     rating_mx_train = np.zeros(num_users * num_items, dtype=np.float32)
-    rating_mx_train[train_idx] = labels[train_idx].astype(np.float32) + 1.
+    rating_mx_train[train_idx] = labels[train_idx].astype(np.float32) + 1. # idk why we add 1
     rating_mx_train = sp.csr_matrix(rating_mx_train.reshape(num_users, num_items))
 
     class_values = np.sort(np.unique(ratings))
@@ -205,7 +207,7 @@ def load_data_monti(dataset, testing=False):
 
     path_dataset = 'data/' + dataset + '/training_test_dataset.mat'
 
-    M = load_matlab_file(path_dataset, 'M')
+    M = load_matlab_file(path_dataset, 'M') # this is the matrix of ratings?
     Otraining = load_matlab_file(path_dataset, 'Otraining')
     Otest = load_matlab_file(path_dataset, 'Otest')
 
@@ -217,7 +219,6 @@ def load_data_monti(dataset, testing=False):
         Wcol = load_matlab_file(path_dataset, 'W_movies')
         u_features = Wrow
         v_features = Wcol
-        # print(num_items, v_features.shape)
         # v_features = np.eye(num_items)
 
     elif dataset == 'douban':
@@ -229,15 +230,23 @@ def load_data_monti(dataset, testing=False):
         u_features = np.eye(num_users)
         v_features = Wcol
 
-    u_nodes_ratings = np.where(M)[0]
-    v_nodes_ratings = np.where(M)[1]
-    ratings = M[np.where(M)]
+    # M is a matrix of users to item ratings
+    u_nodes_ratings = np.where(M)[0] # returns the rows/users that have nonzero ratings
+    # print(M)
+    # print(np.where(M))
+    # print(u_nodes_ratings)
+    v_nodes_ratings = np.where(M)[1] # returns the cols/items that have nonzero ratings
+    ratings = M[np.where(M)] # getting all the nonzero ratings
+    # print('ratings:', ratings)
+    
 
     u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int64), v_nodes_ratings.astype(np.int32)
     ratings = ratings.astype(np.float64)
 
     u_nodes = u_nodes_ratings
     v_nodes = v_nodes_ratings
+    # print("u_nodes:", u_nodes)
+    # print("v_nodes:", v_nodes)
 
     print('number of users = ', len(set(u_nodes)))
     print('number of item = ', len(set(v_nodes)))
@@ -246,24 +255,27 @@ def load_data_monti(dataset, testing=False):
 
     # assumes that ratings_train contains at least one example of every rating type
     rating_dict = {r: i for i, r in enumerate(np.sort(np.unique(ratings)).tolist())}
+    # rating_dict: {0.5: 0, 1.0: 1, 2.0: 3, 3.0: 5, 4.0: 7, 5.0: 9, 1.5: 2, 4.5: 8, 3.5: 6, 2.5: 4}
+    # print('rating dict:', rating_dict)
 
     labels = np.full((num_users, num_items), neutral_rating, dtype=np.int32)
-    labels[u_nodes, v_nodes] = np.array([rating_dict[r] for r in ratings])
+    labels[u_nodes, v_nodes] = np.array([rating_dict[r] for r in ratings]) # labels matrix now stores rating index
 
     for i in range(len(u_nodes)):
         assert(labels[u_nodes[i], v_nodes[i]] == rating_dict[ratings[i]])
 
-    labels = labels.reshape([-1])
+    labels = labels.reshape([-1]) # flattens labels matrix into 1-dimensional array
 
     # number of test and validation edges
 
     num_train = np.where(Otraining)[0].shape[0]
+    print('num train:', num_train)
     num_test = np.where(Otest)[0].shape[0]
     num_val = int(np.ceil(num_train * 0.2))
     num_train = num_train - num_val
 
-    pairs_nonzero_train = np.array([[u, v] for u, v in zip(np.where(Otraining)[0], np.where(Otraining)[1])])
-    idx_nonzero_train = np.array([u * num_items + v for u, v in pairs_nonzero_train])
+    pairs_nonzero_train = np.array([[u, v] for u, v in zip(np.where(Otraining)[0], np.where(Otraining)[1])]) # getting coordinates of training
+    idx_nonzero_train = np.array([u * num_items + v for u, v in pairs_nonzero_train]) # getting idx of training data for flattened array
 
     pairs_nonzero_test = np.array([[u, v] for u, v in zip(np.where(Otest)[0], np.where(Otest)[1])])
     idx_nonzero_test = np.array([u * num_items + v for u, v in pairs_nonzero_test])
@@ -288,7 +300,7 @@ def load_data_monti(dataset, testing=False):
     train_pairs_idx = pairs_nonzero[num_val:num_train + num_val]
     test_pairs_idx = pairs_nonzero[num_train + num_val:]
 
-    u_test_idx, v_test_idx = test_pairs_idx.transpose()
+    u_test_idx, v_test_idx = test_pairs_idx.transpose() # indices of users/items with nonzero ratings
     u_val_idx, v_val_idx = val_pairs_idx.transpose()
     u_train_idx, v_train_idx = train_pairs_idx.transpose()
 
