@@ -14,6 +14,7 @@ from zipfile import ZipFile
 from StringIO import StringIO
 import shutil
 import os.path
+import os
 
 
 def data_iterator(data, batch_size):
@@ -77,10 +78,10 @@ def download_dataset(dataset, files, data_dir):
         with ZipFile(StringIO(request.read())) as zip_ref:
             zip_ref.extractall('data/')
 
-        source = [target_dir + '/' + s for s in os.listdir(target_dir)]
-        destination = data_dir+'/'
+        source = [target_dir + '/' + s for s in os.listdir(target_dir)] # os.listdir(target_dir) lists all the files in data/ml-100k
+        destination = data_dir+'/' # data/ml_100k
         for f in source:
-            shutil.copy(f, destination)
+            shutil.copy(f, destination) # copying into build file
 
         shutil.rmtree(target_dir)
 
@@ -127,6 +128,8 @@ def load_data(fname, seed=1234, verbose=True):
     u_features = None
     v_features = None
 
+    print("hello in here")
+    print(fname == 'yelp')
     print('Loading dataset', fname)
 
     data_dir = 'data/' + fname
@@ -142,6 +145,10 @@ def load_data(fname, seed=1234, verbose=True):
 
         sep = '\t'
         filename = data_dir + files[0]
+
+        f = open("output.txt", "a")
+        print(os.getcwd(), file=f)
+        f.close()
 
         dtypes = {
             'u_nodes': np.int32, 'v_nodes': np.int32,
@@ -234,6 +241,12 @@ def load_data(fname, seed=1234, verbose=True):
             'ratings': np.float32, 'timestamp': np.float64}
 
         # use engine='python' to ignore warning about switching to python backend when using regexp for sep
+        # cwd = os.getcwd()
+
+        f = open("output.txt", "a")
+        print(os.getcwd(), file=f)
+        f.close()
+
         data = pd.read_csv(filename, sep=sep, header=None,
                            names=['u_nodes', 'v_nodes', 'ratings', 'timestamp'], converters=dtypes, engine='python')
 
@@ -353,17 +366,29 @@ def load_data(fname, seed=1234, verbose=True):
 
         print("in yelp data loading")
 
+        # target_dir = 'data/yelp'
+
+        # source = [target_dir + '/' + s for s in os.listdir(target_dir)]  # os.listdir(target_dir) lists all the files in data/ml-100k
+        # destination = data_dir + '/'  # data/ml_100k
+        # for f in source:
+        #     shutil.copy(f, destination)  # copying into build file
+        #
+        # shutil.rmtree(target_dir)
+
         sep = '\t'
-        filename = data_dir + 'yelp_M_data.csv'
+        filename = data_dir + '/yelp_M_data.csv'
 
         dtypes = {
             'u_nodes': np.int32, 'v_nodes': np.int32,
             'ratings': np.int32}
 
-        data = pd.read_csv(
-            filename, sep=sep, header=None,
-            names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
-        # names = sequence of column labels to apply
+        try:
+            cwd = os.getcwd()
+            data = pd.read_csv(filename, sep=sep, header=None, names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
+            # names = sequence of column labels to apply
+            print('works')
+        except Exception as e:
+            print('exception:', e)
 
         # shuffle here like cf-nade paper with python's own random class
         # make sure to convert to list, otherwise random.shuffle acts weird on it without a warning

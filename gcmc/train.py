@@ -114,8 +114,8 @@ SELFCONNECTIONS = False
 SPLITFROMFILE = True
 VERBOSE = True
 
-if DATASET == 'ml_1m' or DATASET == 'ml_100k' or DATASET == 'douban':
-    NUMCLASSES = 5
+if DATASET == 'ml_1m' or DATASET == 'ml_100k' or DATASET == 'douban' or DATASET == 'yelp':
+    NUMCLASSES = 5 # number of possible different ratings?
 elif DATASET == 'ml_10m':
     NUMCLASSES = 10
     print('\n WARNING: this might run out of RAM, consider using train_minibatch.py for dataset %s' % DATASET)

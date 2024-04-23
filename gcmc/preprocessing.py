@@ -358,6 +358,9 @@ def load_official_trainvaltest_split(dataset, testing=False):
     filename_train = 'data/' + dataset + '/u1.base'
     filename_test = 'data/' + dataset + '/u1.test'
 
+    print("IN OFFICIAL")
+    print('cwd:', os.getcwd())
+
     data_train = pd.read_csv(
         filename_train, sep=sep, header=None,
         names=['u_nodes', 'v_nodes', 'ratings', 'timestamp'], dtype=dtypes)

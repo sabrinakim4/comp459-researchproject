@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: gcmc
+Version: 0.1
+Summary: Graph Convolutional Matrix Completion
+Home-page: http://riannevdberg.github.io
+Download-URL: https://github.com/riannevdberg/gc-mc
+Author: Rianne van den Berg, Thomas Kipf
+Author-email: riannevdberg@gmail.com
+License: MIT
