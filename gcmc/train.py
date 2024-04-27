@@ -273,7 +273,10 @@ train_support_t = support_t[np.array(train_v)]
 # features as side info
 if FEATURES:
     test_u_features_side = u_features_side[np.array(test_u)]
-    test_v_features_side = v_features_side[np.array(test_v)]
+    test_v_features_side = v_features_side[np.array(test_v)] # test_v has all the indices of the item nodes with rating
+    #### useridx, itemidx, rating
+
+    # v_features_side (59, 114) --> 59 unique items
 
     val_u_features_side = u_features_side[np.array(val_u)]
     val_v_features_side = v_features_side[np.array(val_v)]

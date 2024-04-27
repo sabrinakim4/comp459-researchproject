@@ -137,7 +137,6 @@ def create_trainvaltest_split(dataset, seed=1234, testing=False, datasplit_path=
             print('Fraction of positive links = %.4f' % (float(ratings.shape[0]) / (num_users * num_items),))
 
     else:
-        print("in here")
         num_users, num_items, u_nodes, v_nodes, ratings, u_features, v_features = load_data(dataset, seed=seed,
                                                                                             verbose=verbose)
 

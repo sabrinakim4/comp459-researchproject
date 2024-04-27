@@ -51,9 +51,11 @@ def map_data(data):
     n : length of mapped_data
 
     """
-    uniq = list(set(data))
+    # for yelp data, map_data maps ids to the same id.
 
-    id_dict = {old: new for new, old in enumerate(sorted(uniq))}
+    uniq = list(set(data)) # all the u_node ids from dataset
+
+    id_dict = {old: new for new, old in enumerate(sorted(uniq))} # sorting u_node ids
     data = np.array(map(lambda x: id_dict[x], data)) # mapping data into continuous 0->n range?
     n = len(uniq)
 
@@ -364,7 +366,7 @@ def load_data(fname, seed=1234, verbose=True):
         #
         # download_dataset(fname, files, data_dir)
 
-        print("in yelp data loading")
+        # print("in yelp data loading")
 
         # target_dir = 'data/yelp'
 
@@ -378,18 +380,17 @@ def load_data(fname, seed=1234, verbose=True):
         sep = '\t'
         filename = data_dir + '/yelp_M_data.csv'
 
-        dtypes = {
-            'u_nodes': np.int32, 'v_nodes': np.int32,
-            'ratings': np.int32}
+        dtypes = {'u_nodes': np.int32, 'v_nodes': np.int32, 'ratings': np.int32}
 
-        try:
-            cwd = os.getcwd()
-            data = pd.read_csv(filename, sep=sep, header=None, names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
-            # names = sequence of column labels to apply
-            print('works')
-        except Exception as e:
-            print('exception:', e)
+        # try:
+        #     cwd = os.getcwd()
+        #     data = pd.read_csv(filename, sep=sep, header=None, names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
+        #     # names = sequence of column labels to apply
+        #     print('works')
+        # except Exception as e:
+        #     print('exception:', e)
 
+        data = pd.read_csv(filename, sep=sep, header=None, names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
         # shuffle here like cf-nade paper with python's own random class
         # make sure to convert to list, otherwise random.shuffle acts weird on it without a warning
         data_array = data.as_matrix().tolist()  # as_matrix converts dataframe into numpy array equivalent
@@ -406,9 +407,8 @@ def load_data(fname, seed=1234, verbose=True):
         # u_dict maps the node indices to their actual values
         v_nodes_ratings, v_dict, num_items = map_data(v_nodes_ratings)
 
-        u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int64), v_nodes_ratings.astype(
-            np.int32)  # casting to specific type
-        ratings = ratings.astype(np.float64)
+        u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int32), v_nodes_ratings.astype(np.int32)  # casting to specific type
+        ratings = ratings.astype(np.float64) # float32? for yelp
 
         # # Movie features (genres)
         # sep = r'|'
@@ -429,6 +429,18 @@ def load_data(fname, seed=1234, verbose=True):
         #     # Check if movie_id was listed in ratings file and therefore in mapping dictionary
         #     if movie_id in v_dict.keys():
         #         v_features[v_dict[movie_id], :] = g_vec
+
+        restaurant_file = data_dir + '/yelp_restaurant_feature_M_data.csv'
+        restaurant_df = pd.read_csv(restaurant_file, sep=sep, header=None, engine='python')
+
+        v_features = restaurant_df.to_numpy(dtype=np.float32)
+
+        users_file = data_dir + '/yelp_user_feature_M_data.csv'
+        users_headers = ['review_count', 'years_elite', 'avg_stars']
+        users_df = pd.read_csv(users_file, sep=sep, header=None, names=users_headers, engine='python')
+
+        u_features = users_df.to_numpy(dtype=np.float32)
+
         #
         # # User features
         #
@@ -456,8 +468,8 @@ def load_data(fname, seed=1234, verbose=True):
         #         # occupation
         #         u_features[u_dict[u_id], occupation_dict[row['occupation']]] = 1.
         #
-        # u_features = sp.csr_matrix(u_features)
-        # v_features = sp.csr_matrix(v_features)
+        u_features = sp.csr_matrix(u_features)
+        v_features = sp.csr_matrix(v_features)
 
     else:
         raise ValueError('Dataset name not recognized: ' + fname)
