@@ -51,7 +51,7 @@ def map_data(data):
     n : length of mapped_data
 
     """
-    # for yelp data, map_data maps ids to the same id.
+    # for yelp_tampa data, map_data maps ids to the same id.
 
     uniq = list(set(data)) # all the u_node ids from dataset
 
@@ -131,7 +131,7 @@ def load_data(fname, seed=1234, verbose=True):
     v_features = None
 
     print("hello in here")
-    print(fname == 'yelp')
+    print(fname == 'yelp_tampa')
     print('Loading dataset', fname)
 
     data_dir = 'data/' + fname
@@ -360,35 +360,11 @@ def load_data(fname, seed=1234, verbose=True):
         u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int64), v_nodes_ratings.astype(np.int64)
         ratings = ratings.astype(np.float32)
 
-    elif fname == 'yelp':
-        # # Check if files exist and download otherwise
-        # files = ['/u.data', '/u.item', '/u.user']
-        #
-        # download_dataset(fname, files, data_dir)
-
-        # print("in yelp data loading")
-
-        # target_dir = 'data/yelp'
-
-        # source = [target_dir + '/' + s for s in os.listdir(target_dir)]  # os.listdir(target_dir) lists all the files in data/ml-100k
-        # destination = data_dir + '/'  # data/ml_100k
-        # for f in source:
-        #     shutil.copy(f, destination)  # copying into build file
-        #
-        # shutil.rmtree(target_dir)
-
+    elif fname == 'yelp_tampa' or fname == 'yelp_phil':
         sep = '\t'
         filename = data_dir + '/yelp_M_data.csv'
 
         dtypes = {'u_nodes': np.int32, 'v_nodes': np.int32, 'ratings': np.int32}
-
-        # try:
-        #     cwd = os.getcwd()
-        #     data = pd.read_csv(filename, sep=sep, header=None, names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
-        #     # names = sequence of column labels to apply
-        #     print('works')
-        # except Exception as e:
-        #     print('exception:', e)
 
         data = pd.read_csv(filename, sep=sep, header=None, names=['u_nodes', 'v_nodes', 'ratings'], dtype=dtypes)  # reads csv into a dataframe
         # shuffle here like cf-nade paper with python's own random class
@@ -408,27 +384,7 @@ def load_data(fname, seed=1234, verbose=True):
         v_nodes_ratings, v_dict, num_items = map_data(v_nodes_ratings)
 
         u_nodes_ratings, v_nodes_ratings = u_nodes_ratings.astype(np.int32), v_nodes_ratings.astype(np.int32)  # casting to specific type
-        ratings = ratings.astype(np.float64) # float32? for yelp
-
-        # # Movie features (genres)
-        # sep = r'|'
-        # movie_file = data_dir + files[1]
-        # movie_headers = ['movie id', 'movie title', 'release date', 'video release date',
-        #                  'IMDb URL', 'unknown', 'Action', 'Adventure', 'Animation',
-        #                  'Childrens', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
-        #                  'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi',
-        #                  'Thriller', 'War', 'Western']
-        # movie_df = pd.read_csv(movie_file, sep=sep, header=None,
-        #                        names=movie_headers, engine='python')
-        #
-        # genre_headers = movie_df.columns.values[6:]
-        # num_genres = genre_headers.shape[0]
-        #
-        # v_features = np.zeros((num_items, num_genres), dtype=np.float32)
-        # for movie_id, g_vec in zip(movie_df['movie id'].values.tolist(), movie_df[genre_headers].values.tolist()):
-        #     # Check if movie_id was listed in ratings file and therefore in mapping dictionary
-        #     if movie_id in v_dict.keys():
-        #         v_features[v_dict[movie_id], :] = g_vec
+        ratings = ratings.astype(np.float64) # float32? for yelp_tampa
 
         restaurant_file = data_dir + '/yelp_restaurant_feature_M_data.csv'
         restaurant_df = pd.read_csv(restaurant_file, sep=sep, header=None, engine='python')
@@ -441,33 +397,6 @@ def load_data(fname, seed=1234, verbose=True):
 
         u_features = users_df.to_numpy(dtype=np.float32)
 
-        #
-        # # User features
-        #
-        # sep = r'|'
-        # users_file = data_dir + files[2]
-        # users_headers = ['user id', 'age', 'gender', 'occupation', 'zip code']
-        # users_df = pd.read_csv(users_file, sep=sep, header=None,
-        #                        names=users_headers, engine='python')
-        #
-        # occupation = set(users_df['occupation'].values.tolist())
-        #
-        # gender_dict = {'M': 0., 'F': 1.}
-        # occupation_dict = {f: i for i, f in enumerate(occupation, start=2)}
-        #
-        # num_feats = 2 + len(occupation_dict)
-        #
-        # u_features = np.zeros((num_users, num_feats), dtype=np.float32)
-        # for _, row in users_df.iterrows():
-        #     u_id = row['user id']
-        #     if u_id in u_dict.keys():
-        #         # age
-        #         u_features[u_dict[u_id], 0] = row['age']
-        #         # gender
-        #         u_features[u_dict[u_id], 1] = gender_dict[row['gender']]
-        #         # occupation
-        #         u_features[u_dict[u_id], occupation_dict[row['occupation']]] = 1.
-        #
         u_features = sp.csr_matrix(u_features)
         v_features = sp.csr_matrix(v_features)
 

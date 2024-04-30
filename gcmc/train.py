@@ -28,7 +28,7 @@ tf.set_random_seed(seed)
 # Settings
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", type=str, default="ml_1m",
-                choices=['ml_100k', 'ml_1m', 'ml_10m', 'douban', 'yahoo_music', 'flixster', 'yelp'],
+                choices=['ml_100k', 'ml_1m', 'ml_10m', 'douban', 'yahoo_music', 'flixster', 'yelp_tampa', 'yelp_phil'],
                 help="Dataset string.")
 
 ap.add_argument("-lr", "--learning_rate", type=float, default=0.01,
@@ -114,7 +114,7 @@ SELFCONNECTIONS = False
 SPLITFROMFILE = True
 VERBOSE = True
 
-if DATASET == 'ml_1m' or DATASET == 'ml_100k' or DATASET == 'douban' or DATASET == 'yelp':
+if DATASET == 'ml_1m' or DATASET == 'ml_100k' or DATASET == 'douban' or DATASET == 'yelp_tampa' or DATASET == 'yelp_phil':
     NUMCLASSES = 5 # number of possible different ratings?
 elif DATASET == 'ml_10m':
     NUMCLASSES = 10
