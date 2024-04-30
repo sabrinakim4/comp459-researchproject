@@ -42,4 +42,4 @@ python2 train.py -yelp_tampa --accum stack -do 0.7 -nleft -nb 2 -e 1000 --featur
 ## Extra Infomration
 
 We have also included the code we used to generate the Yelp datasets for Philadelphia and Tampa. This code is in the file:
-    Yelp_Recommendation_Datasets.py
+    gcmc/Yelp_Recommendation_Datasets.py
